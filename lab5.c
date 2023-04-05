@@ -71,6 +71,12 @@ void gotoformat(struct stat file){
                     printf("Read:NO\n");
                 }
 }
+void getLinkname(char* file){
+    char buffer[1024];
+    ssize_t len;
+    len = readlink(file,buffer,sizeof(buffer)-1);
+    printf("The link name of %s is %s\n ",file,buffer);
+}
 
 int main(int argc, char *argv[]){
     struct stat file_stat;
@@ -105,6 +111,7 @@ int main(int argc, char *argv[]){
             break;
         }
     }
+
     else if(S_ISLNK(file_stat.st_mode)){
         printf("The file ' %s ' a symbolic link\n",argv[i]);
         char c;
@@ -112,9 +119,9 @@ int main(int argc, char *argv[]){
         scanf(" %c",&c);
         switch (c)
         {
-            case'n':printf("The link names is\n");break;
-            case'l':printf("Deleted link\n");break;
-            case'd':printf("Size of link is\n");break;
+            case'n':printf("The link names is "getLinkname(argv[i]));break;
+            case'l':printf("Deleted link\n",unlink(argv[i]));break;
+            case'd':printf("Size of link is\n",file_stat.st_size);break;
             case'z':printf("Size of target link is\n");break;
             case'a':gotoformat(file_stat);break;
             
@@ -122,25 +129,9 @@ int main(int argc, char *argv[]){
     }
     else{
         printf("The %s is not a regular/symbolic file",argv[i]);
-        char c;
-        /*
-        printf("\n -n Name\n -d Size\n -a Access rights\n -c Total number of .c file\n");
-        scanf(" %c",&c);
-        switch (c)
-        {
-        case 'n': break;
-        case 'd': break;
-        case 'a':gotoformat(file_stat);
-        case 'c':
-        default:
-            break;
-        }
-        */
     }
     }
     }
-
-
 
     return 0;
 }

@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <string.h>
 void gotoformat(struct stat file){
     printf("USER:\n");
                 if(file.st_mode & S_IRUSR )
@@ -14,17 +16,17 @@ void gotoformat(struct stat file){
                 }
                 if(file.st_mode & S_IWUSR )
                 {
-                    printf("Read:YES\n");
+                    printf("Write:YES\n");
                 }
                 else{
-                    printf("Read:NO\n");
+                    printf("Write:NO\n");
                 }
-                if(file.st_mode & S_IWUSR )
+                if(file.st_mode & S_IXUSR )
                 {
-                    printf("Read:YES\n");
+                    printf("Execution:YES\n");
                 }
                 else{
-                    printf("Read:NO\n");
+                    printf("Execution:NO\n");
                 }
     printf("\nGROUP:\n");
                 if(file.st_mode & S_IRGRP )
@@ -36,17 +38,17 @@ void gotoformat(struct stat file){
                 }
                 if(file.st_mode & S_IWGRP )
                 {
-                    printf("Read:YES\n");
+                    printf("Write:YES\n");
                 }
                 else{
-                    printf("Read:NO\n");
+                    printf("Write:NO\n");
                 }
-                if(file.st_mode & S_IWGRP )
+                if(file.st_mode & S_IXGRP )
                 {
-                    printf("Read:YES\n");
+                    printf("Execution:YES\n");
                 }
                 else{
-                    printf("Read:NO\n");
+                    printf("Execution:NO\n");
                 }
     printf("\nOTHERS:\n");
                 if(file.st_mode &  S_IROTH)
@@ -58,24 +60,53 @@ void gotoformat(struct stat file){
                 }
                 if(file.st_mode &   S_IWOTH )
                 {
-                    printf("Read:YES\n");
+                    printf("Write:YES\n");
                 }
                 else{
-                    printf("Read:NO\n");
+                    printf("Write:NO\n");
                 }
                 if(file.st_mode & S_IXOTH )
                 {
-                    printf("Read:YES\n");
+                    printf("Execution:YES\n");
                 }
                 else{
-                    printf("Read:NO\n");
+                    printf("Execution:NO\n");
                 }
 }
 void getLinkname(char* file){
     char buffer[1024];
-    ssize_t len;
-    len = readlink(file,buffer,sizeof(buffer)-1);
+
+    readlink(file,buffer,sizeof(buffer)-1);
     printf("The link name of %s is %s\n ",file,buffer);
+}
+void getLinksize(char* file){
+    char buffer[1024];
+    readlink(file,buffer,sizeof(buffer)-1);
+    struct stat Target;
+    lstat(buffer,&Target);
+    printf("The link size of %s is %ld\n ",file,Target.st_size);
+}
+void check_c_files(char* dir_name){
+    DIR *dir;
+    struct dirent *ent;
+    int count = 0;
+    int len;
+    char str[10];
+    dir = opendir(dir_name);
+    if(dir!=NULL )
+    {
+        while((ent = readdir(dir)) !=NULL){
+            len = strlen(ent->d_name);
+            if(strcmp(ent->d_name+len -2,".c") == 0)
+                count++;
+
+        }
+        closedir(dir);
+    }else{
+        printf("Error opening dir\n");
+    }
+    printf("The number of c files is %d",count);
+
 }
 
 int main(int argc, char *argv[]){
@@ -119,16 +150,27 @@ int main(int argc, char *argv[]){
         scanf(" %c",&c);
         switch (c)
         {
-            case'n':printf("The link names is "getLinkname(argv[i]));break;
-            case'l':printf("Deleted link\n",unlink(argv[i]));break;
-            case'd':printf("Size of link is\n",file_stat.st_size);break;
-            case'z':printf("Size of target link is\n");break;
+            case'n':getLinkname(argv[i]);break;
+            case'l':unlink(argv[i]);
+                    printf("The link was deleted\n");break;
+            case'd':printf("Size of link is %ld \n",file_stat.st_size);break;
+            case'z':getLinksize(argv[i]);break;
             case'a':gotoformat(file_stat);break;
             
         }
     }
     else{
         printf("The %s is not a regular/symbolic file",argv[i]);
+        char c;
+        printf("\n -n Name \n -d Size \n -a Access rights \n -c Total number of .c files \n");
+        scanf(" %c",&c);
+        switch(c)
+        {
+            case'n':printf("File name is %s\n",argv[i]);break;
+            case'd':printf("Size of the file is %ld\n",file_stat.st_size);break;
+            case'c':check_c_files(argv[i]);break;
+            case'a':gotoformat(file_stat);break;
+        }
     }
     }
     }

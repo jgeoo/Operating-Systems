@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
+#include <stdbool.h>
 void gotoformat(struct stat file){
     printf("USER:\n");
                 if(file.st_mode & S_IRUSR )
@@ -91,7 +92,6 @@ void check_c_files(char* dir_name){
     struct dirent *ent;
     int count = 0;
     int len;
-    char str[10];
     dir = opendir(dir_name);
     if(dir!=NULL )
     {
@@ -105,26 +105,57 @@ void check_c_files(char* dir_name){
     }else{
         printf("Error opening dir\n");
     }
-    printf("The number of c files is %d",count);
+    printf("The number of c files is %d\n",count);
 
 }
+bool check_c_files_regularfile(char* file_name){
+    int len = strlen(file_name);
+   
+            if(strcmp(file_name+len -2,".c") == 0)
+                return true;
+    return false;
 
+}
 int main(int argc, char *argv[]){
     struct stat file_stat;
+    pid_t pid;
     if(argc == 1){
         printf("Not multiple cmd agr");
         return EXIT_FAILURE;
     }else{
     for( int  i = 1; i < argc ;i++){
     lstat(argv[i],&file_stat);
+    /*
+    pid = fork();
+    
+    if(pid < 0){
+        perror("The process didn t start \n");
+    }
+    else if(pid == 0){
+*/
     if(S_ISREG(file_stat.st_mode))
     {
         char c;
         char link[24];
         struct tm *time = localtime(&file_stat.st_mtime);
-        printf("The file  ' %s ' is a regular file\n",argv[i]);
+        printf("The file  ' %s ' is a regular file",argv[i]);
         printf("\nA) Regular file\n -n (file name) \n -d (dim/size) \n -h (number of hard links \n -m (time of last modif) \n -a (acces rights) \n -l (create a symbolic link)\n\n");
+        
+        if(check_c_files_regularfile(argv[i])){
+            
+        pid = fork();
+        if(pid < 0 )
+            perror("Process for regular file didn t start");
+        }else if( pid == 0){
+           //printf("Dadadadadada");
+            execlp("./script.sh","./script.sh",argv[i],NULL);
+            exit(EXIT_FAILURE);
+        }
         scanf(" %c",&c);
+        pid = fork();
+        if(pid < 0){
+            perror("Didn t start");
+        }else if(pid == 0){
         switch (c)
         {
         case 'n':printf("File name:%s\n",argv[i]);break;
@@ -139,15 +170,20 @@ int main(int argc, char *argv[]){
                 printf("The file %s was created\n",link);
                 break;
         default:
+            printf("copileregular");
             break;
+            fflush(stdin);
+        }
+        exit(EXIT_FAILURE);
         }
     }
 
     else if(S_ISLNK(file_stat.st_mode)){
-        printf("The file ' %s ' a symbolic link\n",argv[i]);
+        printf("The file ' %s ' a symbolic link",argv[i]);
         char c;
         printf("\n -n Link name \n-l delete link \n -d Size of link \n-z size of target \n-a acces rights \n");
         scanf(" %c",&c);
+    
         switch (c)
         {
             case'n':getLinkname(argv[i]);break;
@@ -156,6 +192,9 @@ int main(int argc, char *argv[]){
             case'd':printf("Size of link is %ld \n",file_stat.st_size);break;
             case'z':getLinksize(argv[i]);break;
             case'a':gotoformat(file_stat);break;
+            default:
+                printf("copilesimulink");
+                break;
             
         }
     }
@@ -164,14 +203,23 @@ int main(int argc, char *argv[]){
         char c;
         printf("\n -n Name \n -d Size \n -a Access rights \n -c Total number of .c files \n");
         scanf(" %c",&c);
+    
         switch(c)
         {
             case'n':printf("File name is %s\n",argv[i]);break;
             case'd':printf("Size of the file is %ld\n",file_stat.st_size);break;
             case'c':check_c_files(argv[i]);break;
             case'a':gotoformat(file_stat);break;
+            default:
+                printf("copiledirector");
+                break;
+                
+            
         }
     }
+    
+   // exit(EXIT_FAILURE);
+   //}
     }
     }
 

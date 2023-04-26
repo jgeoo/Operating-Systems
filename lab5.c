@@ -108,17 +108,17 @@ void check_c_files(char* dir_name){
     printf("The number of c files is %d\n",count);
 
 }
-bool check_c_files_regularfile(char* file_name){
+int check_c_files_regularfile(char* file_name){
     int len = strlen(file_name);
    
             if(strcmp(file_name+len -2,".c") == 0)
-                return true;
-    return false;
+                return 1;
+    return 0;
 
 }
 int main(int argc, char *argv[]){
     struct stat file_stat;
-    pid_t pid;
+    pid_t pid, process_forcfile;
     if(argc == 1){
         printf("Not multiple cmd agr");
         return EXIT_FAILURE;
@@ -141,21 +141,21 @@ int main(int argc, char *argv[]){
         printf("The file  ' %s ' is a regular file",argv[i]);
         printf("\nA) Regular file\n -n (file name) \n -d (dim/size) \n -h (number of hard links \n -m (time of last modif) \n -a (acces rights) \n -l (create a symbolic link)\n\n");
         
-        if(check_c_files_regularfile(argv[i])){
-            
-        pid = fork();
-        if(pid < 0 )
+        if(check_c_files_regularfile(argv[i]) == 1){
+        process_forcfile = fork();
+        if(process_forcfile< 0 ){
             perror("Process for regular file didn t start");
-        }else if( pid == 0){
-           //printf("Dadadadadada");
+        }else if( process_forcfile== 0){
             execlp("./script.sh","./script.sh",argv[i],NULL);
-            exit(EXIT_FAILURE);
+             exit(EXIT_FAILURE);
         }
+        }
+       
         scanf(" %c",&c);
-        pid = fork();
-        if(pid < 0){
-            perror("Didn t start");
-        }else if(pid == 0){
+        //pid = fork();
+       // if(pid < 0){
+         //   perror("Didn t start");
+        //}else if(pid == 0){
         switch (c)
         {
         case 'n':printf("File name:%s\n",argv[i]);break;
@@ -169,13 +169,13 @@ int main(int argc, char *argv[]){
                 symlink(argv[i],link);
                 printf("The file %s was created\n",link);
                 break;
-        default:
+        default:fflush(stdin);
             printf("copileregular");
             break;
-            fflush(stdin);
+        
         }
-        exit(EXIT_FAILURE);
-        }
+        //exit(EXIT_FAILURE);
+        //}
     }
 
     else if(S_ISLNK(file_stat.st_mode)){

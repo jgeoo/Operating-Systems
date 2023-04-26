@@ -1,12 +1,10 @@
+
 score=0
-if test -d $1
-then for file in $1/*.c
-do 
+if test -f $1
+then 
 
-score=`gcc -Wall -o score $file 2>&1 | egrep 'error:|warning:' | wc -l`
-echo "For the file $file there is $score warnings/errors " >> file.out
-
-done
+score=`gcc -Wall -o "$1" 2>&1| egrep 'error:|warning:' | wc -l`
+echo "For the file $1 there is $score warnings/errors " >> file.out
 
 else echo "Not a Directory"
 fi

@@ -1,0 +1,11 @@
+Test.c: In function ‘main’:
+Test.c:6:26: error: expected ‘;’ before ‘rarese’
+    6 |     printf("Hello world")
+      |                          ^
+      |                          ;
+    7 | 
+    8 |     rarese+rares=a
+      |     ~~~~~~                
+Test.c:5:9: warning: unused variable ‘fal’ [-Wunused-variable]
+    5 |     int fal;
+      |         ^~~

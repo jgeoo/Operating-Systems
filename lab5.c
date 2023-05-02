@@ -118,22 +118,15 @@ int check_c_files_regularfile(char* file_name){
 }
 int main(int argc, char *argv[]){
     struct stat file_stat;
-    pid_t pid, process_forcfile;
+    pid_t process_forkfile, pid_switch;
     if(argc == 1){
         printf("Not multiple cmd agr");
         return EXIT_FAILURE;
     }else{
     for( int  i = 1; i < argc ;i++){
     lstat(argv[i],&file_stat);
-    /*
-    pid = fork();
     
-    if(pid < 0){
-        perror("The process didn t start \n");
-    }
-    else if(pid == 0){
-*/
-    if(S_ISREG(file_stat.st_mode))
+      if(S_ISREG(file_stat.st_mode))
     {
         char c;
         char link[24];
@@ -142,20 +135,20 @@ int main(int argc, char *argv[]){
         printf("\nA) Regular file\n -n (file name) \n -d (dim/size) \n -h (number of hard links \n -m (time of last modif) \n -a (acces rights) \n -l (create a symbolic link)\n\n");
         
         if(check_c_files_regularfile(argv[i]) == 1){
-        process_forcfile = fork();
-        if(process_forcfile< 0 ){
+        process_forkfile = fork();
+        if(process_forkfile< 0 ){
             perror("Process for regular file didn t start");
-        }else if( process_forcfile== 0){
+        }else if( process_forkfile== 0){
             execlp("./script.sh","./script.sh",argv[i],NULL);
              exit(EXIT_FAILURE);
         }
         }
        
         scanf(" %c",&c);
-        //pid = fork();
-       // if(pid < 0){
-         //   perror("Didn t start");
-        //}else if(pid == 0){
+        pid_switch = fork();
+        if(pid_switch < 0){
+           perror("Didn t start");
+        }else if(pid_switch == 0){
         switch (c)
         {
         case 'n':printf("File name:%s\n",argv[i]);break;
@@ -170,12 +163,12 @@ int main(int argc, char *argv[]){
                 printf("The file %s was created\n",link);
                 break;
         default:fflush(stdin);
-            printf("copileregular");
+            printf("Not a case for a Regular file\n");
             break;
         
         }
-        //exit(EXIT_FAILURE);
-        //}
+        exit(EXIT_FAILURE);
+        }
     }
 
     else if(S_ISLNK(file_stat.st_mode)){
@@ -193,7 +186,7 @@ int main(int argc, char *argv[]){
             case'z':getLinksize(argv[i]);break;
             case'a':gotoformat(file_stat);break;
             default:
-                printf("copilesimulink");
+                printf("Not a case for a Symbolic Link file");
                 break;
             
         }
@@ -211,15 +204,13 @@ int main(int argc, char *argv[]){
             case'c':check_c_files(argv[i]);break;
             case'a':gotoformat(file_stat);break;
             default:
-                printf("copiledirector");
+                printf("Not a case for a Directory");
                 break;
                 
             
         }
     }
     
-   // exit(EXIT_FAILURE);
-   //}
     }
     }
 

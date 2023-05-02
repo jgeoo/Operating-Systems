@@ -118,7 +118,7 @@ int check_c_files_regularfile(char* file_name){
 }
 int main(int argc, char *argv[]){
     struct stat file_stat;
-    pid_t pid_switch, process_forcfile;
+    pid_t pid_switch, process_forkfile;
     if(argc == 1){
         printf("Not multiple cmd agr");
         return EXIT_FAILURE;
@@ -134,10 +134,10 @@ int main(int argc, char *argv[]){
         printf("\nA) Regular file\n -n (file name) \n -d (dim/size) \n -h (number of hard links \n -m (time of last modif) \n -a (acces rights) \n -l (create a symbolic link)\n\n");
         
         if(check_c_files_regularfile(argv[i]) == 1){
-        process_forcfile = fork();
-        if(process_forcfile< 0 ){
+        process_forkfile = fork();
+        if(process_forkfile< 0 ){
             perror("Process for regular file didn t start");
-        }else if( process_forcfile== 0){
+        }else if( process_forkfile== 0){
             execlp("./script.sh","./script.sh",argv[i],NULL);
              exit(EXIT_FAILURE);
         }

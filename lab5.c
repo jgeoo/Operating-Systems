@@ -118,21 +118,13 @@ int check_c_files_regularfile(char* file_name){
 }
 int main(int argc, char *argv[]){
     struct stat file_stat;
-    pid_t pid, process_forcfile;
+    pid_t pid_switch, process_forcfile;
     if(argc == 1){
         printf("Not multiple cmd agr");
         return EXIT_FAILURE;
     }else{
     for( int  i = 1; i < argc ;i++){
     lstat(argv[i],&file_stat);
-    /*
-    pid = fork();
-    
-    if(pid < 0){
-        perror("The process didn t start \n");
-    }
-    else if(pid == 0){
-*/
     if(S_ISREG(file_stat.st_mode))
     {
         char c;
@@ -152,10 +144,10 @@ int main(int argc, char *argv[]){
         }
        
         scanf(" %c",&c);
-        //pid = fork();
-       // if(pid < 0){
-         //   perror("Didn t start");
-        //}else if(pid == 0){
+        pid_switch = fork();
+        if(pid_switch < 0){
+            perror("Didn t start");
+        }else if(pid_switch == 0){
         switch (c)
         {
         case 'n':printf("File name:%s\n",argv[i]);break;
@@ -170,12 +162,12 @@ int main(int argc, char *argv[]){
                 printf("The file %s was created\n",link);
                 break;
         default:fflush(stdin);
-            printf("copileregular");
+            printf("Not a case for a regular file");
             break;
         
         }
-        //exit(EXIT_FAILURE);
-        //}
+        exit(EXIT_FAILURE);
+        }
     }
 
     else if(S_ISLNK(file_stat.st_mode)){
@@ -193,7 +185,7 @@ int main(int argc, char *argv[]){
             case'z':getLinksize(argv[i]);break;
             case'a':gotoformat(file_stat);break;
             default:
-                printf("copilesimulink");
+                printf("Not a case for symbolic file");
                 break;
             
         }
@@ -211,15 +203,12 @@ int main(int argc, char *argv[]){
             case'c':check_c_files(argv[i]);break;
             case'a':gotoformat(file_stat);break;
             default:
-                printf("copiledirector");
+                printf("Not a case for a Directory");
                 break;
                 
             
         }
     }
-    
-   // exit(EXIT_FAILURE);
-   //}
     }
     }
 

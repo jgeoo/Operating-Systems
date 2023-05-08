@@ -171,7 +171,8 @@ int main(int argc, char *argv[]){
         if(pid_switch < 0){
             perror("Didn t start");
         }else if(pid_switch == 0){
-
+            if((check_c_files_regularfile(argv[i])) == 0 )
+            execlp("./nr_of_lines.sh","./nr_of_lines.sh",argv[i],NULL);
         switch (c)
         {
         case 'n':printf("File name:%s\n",argv[i]);break;
@@ -193,6 +194,8 @@ int main(int argc, char *argv[]){
 
         exit(EXIT_FAILURE);
         }
+        if(process_forkfile != 0)
+            wait();
     }
 
     else if(S_ISLNK(file_stat.st_mode)){

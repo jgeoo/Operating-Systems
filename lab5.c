@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdbool.h> 
+#include <sys/wait.h>
 
 void gotoformat(struct stat file){
     printf("USER:\n");
@@ -131,7 +132,7 @@ int check_c_files_regularfile(char* file_name){
 int main(int argc, char *argv[]){
 
     struct stat file_stat;
-    pid_t pid_switch, process_forkfile;
+    int pid_switch, process_forkfile;
 
     if(argc == 1){
 
@@ -141,40 +142,35 @@ int main(int argc, char *argv[]){
     }else{
 
     for( int  i = 1; i < argc ;i++){
+     lstat(argv[i],&file_stat);
 
-    lstat(argv[i],&file_stat);
+    process_forkfile = fork();
 
-    if(S_ISREG(file_stat.st_mode))
-    {
+    if(process_forkfile < 0 ){
+
+            perror("Process for regular file didn t start");
+
+    }else if( process_forkfile == 0){
+
+
+     if(S_ISREG(file_stat.st_mode))
+        {
         char c;
         char link[24];
         struct tm *time = localtime(&file_stat.st_mtime);
 
+       
+        
         printf("The file  ' %s ' is a regular file",argv[i]);
         printf("\nA) Regular file\n -n (file name) \n -d (dim/size) \n -h (number of hard links \n -m (time of last modif) \n -a (acces rights) \n -l (create a symbolic link)\n\n");
         
-        if(check_c_files_regularfile(argv[i]) == 1){
 
-        process_forkfile = fork();
-        if(process_forkfile< 0 ){
-            perror("Process for regular file didn t start");
-        }else if( process_forkfile== 0){
-            execlp("./script.sh","./script.sh",argv[i],NULL);
-             exit(EXIT_FAILURE);
-        }
-
-        }
-       
         scanf(" %c",&c);
-        pid_switch = fork();
-
-        if(pid_switch < 0){
-            perror("Didn t start");
-        }else if(pid_switch == 0){
-            if((check_c_files_regularfile(argv[i])) == 0 )
-            execlp("./nr_of_lines.sh","./nr_of_lines.sh",argv[i],NULL);
+        
+       
         switch (c)
         {
+
         case 'n':printf("File name:%s\n",argv[i]);break;
         case 'd':printf("The size of the file is %ld\n",file_stat.st_size);break;
         case 'h':printf("The number of hard links is %ld\n",file_stat.st_nlink);break;
@@ -192,13 +188,10 @@ int main(int argc, char *argv[]){
         
         }
 
-        exit(EXIT_FAILURE);
         }
-        if(process_forkfile != 0)
-            wait();
-    }
+    
 
-    else if(S_ISLNK(file_stat.st_mode)){
+     else if(S_ISLNK(file_stat.st_mode)){
 
         printf("The file ' %s ' a symbolic link",argv[i]);
         char c;
@@ -220,8 +213,8 @@ int main(int argc, char *argv[]){
                     break;
             
         }
-    }
-    else{
+     }
+     else{
         printf("The %s is not a regular/symbolic file",argv[i]);
         char c;
         printf("\n -n Name \n -d Size \n -a Access rights \n -c Total number of .c files \n");
@@ -240,8 +233,28 @@ int main(int argc, char *argv[]){
             
             }
         }
-    }
-    }
+   
+        exit(0);
+     }
+     getpid();
+    
+      pid_switch = fork();
+            if(pid_switch < 0){
+            perror("Didn t start");
+         }else if(pid_switch == 0){
+            if(check_c_files_regularfile(argv[1] )){
+                
+                execlp("./script.sh","./script.sh",argv[i],NULL);
+                exit(0);
+            }
+         }else{
+            int status;
+            wait(&status);
 
+            wait(&status);
+         }
+       
+ }
+    }
     return 0;
-}
+    }

@@ -76,6 +76,25 @@ void gotoformat(struct stat file){
                         printf("Execution:NO\n");
                     }
 }
+void computescore(int erorrs,int warnings){
+    int score;
+  
+   if(erorrs == 0 && warnings == 0){
+    printf("The score for the file is 10\n");
+   }
+   if(erorrs >= 1){
+    printf("The score for the file is 1\n");
+   }
+   if(erorrs == 0 && warnings >= 10){
+    printf("The score for the file is 2\n");
+   }
+   if(erorrs == 0 && warnings <=10)
+   {
+    score = 2+8*((10-warnings)/10);
+    printf("The score for the file is %d\n",score);
+   }
+    
+}
 void getLinkname(char* file){
 
     char buffer[1024];
@@ -123,7 +142,7 @@ void check_c_files(char* dir_name){
 int check_c_files_regularfile(char* file_name){ 
 
     int len = strlen(file_name);
-            if(strcmp(file_name+len -2,".c") == 0)
+            if(strcmp(file_name+len - 2,".c") == 0)
                     return 1;
 
     return 0;
@@ -132,7 +151,8 @@ int check_c_files_regularfile(char* file_name){
 int main(int argc, char *argv[]){
 
     struct stat file_stat;
-    int pid_switch, process_forkfile;
+    int pid;
+    int pipefd[2];//0->write 1->read 
 
     if(argc == 1){
 
@@ -144,13 +164,13 @@ int main(int argc, char *argv[]){
     for( int  i = 1; i < argc ;i++){
      lstat(argv[i],&file_stat);
 
-    process_forkfile = fork();
-
-    if(process_forkfile < 0 ){
+    pid  = fork();
+  
+    if(pid  < 0 ){
 
             perror("Process for regular file didn t start");
 
-    }else if( process_forkfile == 0){
+    }else if( pid == 0){
 
 
      if(S_ISREG(file_stat.st_mode))
@@ -218,6 +238,7 @@ int main(int argc, char *argv[]){
         printf("The %s is not a regular/symbolic file",argv[i]);
         char c;
         printf("\n -n Name \n -d Size \n -a Access rights \n -c Total number of .c files \n");
+
         scanf(" %c",&c);
     
         switch(c)
@@ -236,25 +257,73 @@ int main(int argc, char *argv[]){
    
         exit(0);
      }
-     getpid();
+        
+    if(S_ISREG(file_stat.st_mode)){
+        if(pipe(pipefd) == -1){
+            perror("Error with pipe\n");
+            exit(EXIT_FAILURE);
+        }
     
-      pid_switch = fork();
-            if(pid_switch < 0){
-            perror("Didn t start");
-         }else if(pid_switch == 0){
-            if(check_c_files_regularfile(argv[1] )){
+      pid = fork();
+      int warnings=0,erorrs=0;
+      
+                if(pid < 0){
+                    perror("Didn t start\n");
+             }else if(pid == 0){
+                 if(check_c_files_regularfile(argv[i] ) == 1){
                 
-                execlp("./script.sh","./script.sh",argv[i],NULL);
-                exit(0);
-            }
-         }else{
-            int status;
-            wait(&status);
+                    close(pipefd[0]);
 
-            wait(&status);
-         }
-       
- }
+                    dup2(pipefd[1], STDOUT_FILENO);
+                    execlp("./script.sh","./script.sh",argv[i],NULL);
+
+                    }else{  
+                    
+                        //printf("There are ");
+                        execlp("wc","wc","-l",argv[i],NULL);
+                        //printf("lines for the file %s\n",argv[i]);
+                        exit(0);
+
+                    }
+                exit(0);
+            }else{
+                
+                close(pipefd[1]);
+                
+
+                FILE * FD = fdopen(pipefd[0],"r");
+
+                if(FD == NULL)
+                {
+                    perror("Couldn't open the file for the pipe");
+                    exit(EXIT_FAILURE);
+                }
+
+                fscanf(FD,"%d",&warnings);
+                fscanf(FD,"%d", &erorrs);
+
+                fclose(FD);
+                close(pipefd[0]);
+                if(check_c_files_regularfile(argv[i] ) == 1){
+                computescore(warnings,erorrs);
+                
+                }
+                int status;
+
+                wait(&status);
+
+                wait(&status);
+
+                wait(&status);
+                 
+            }
+    }
+    if(S_ISDIR(file_stat.st_mode)){
+        printf("This is a directory\n");
+
+    
+        }
+    }
     }
     return 0;
     }
